@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ドラクエ風バトルデモ（3分割レイアウト）</title>
+  <title>ドラクエ風バトルデモ（3分割＋EXP）</title>
   <style>
     body {
       background-color: #000;
@@ -48,7 +48,7 @@
       padding-bottom: 8px;
     }
 
-    /* 中央：ログビュー＋コマンドビュー（縦分割） */
+    /* 中央：ログビュー＋コマンドビュー */
     #center-area {
       display: flex;
       flex-direction: column;
@@ -127,6 +127,7 @@
         <div id="player-name"></div>
         <div id="player-lv"></div>
         <div id="player-hp"></div>
+        <div id="player-exp"></div>   <!-- ← EXP追加 -->
       </div>
     </div>
 
@@ -153,11 +154,12 @@
 
   <script>
     // ============================
-    // データ定義
+    // データ定義（EXP追加）
     // ============================
     const player = {
       name: "やまちゃん",
       level: 1,
+      exp: 0,        // ← EXP追加
       hp: 20,
       maxHp: 20,
       attackMin: 3,
@@ -169,7 +171,8 @@
       hp: 15,
       maxHp: 15,
       attackMin: 1,
-      attackMax: 3
+      attackMax: 3,
+      expGain: 5      // 倒した時に入る経験値
     };
 
     // "playerTurn" | "enemyTurn" | "win" | "lose" | "escape"
@@ -185,6 +188,7 @@
     const playerNameEl = document.getElementById("player-name");
     const playerLvEl   = document.getElementById("player-lv");
     const playerHpEl   = document.getElementById("player-hp");
+    const playerExpEl  = document.getElementById("player-exp"); // ← EXP DOM
 
     const messageTextEl = document.getElementById("message-text");
 
@@ -192,12 +196,8 @@
     const runBtn    = document.getElementById("run-btn");
 
     // ============================
-    // ユーティリティ
+    // ステータス更新（EXP対応）
     // ============================
-    function getRandomDamage(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
     function updateStatus() {
       enemyNameEl.textContent = enemy.name;
       enemyHpEl.textContent   = "H P : " + enemy.hp + " / " + enemy.maxHp;
@@ -205,6 +205,7 @@
       playerNameEl.textContent = player.name;
       playerLvEl.textContent   = "L V : " + player.level;
       playerHpEl.textContent   = "H P : " + player.hp + " / " + player.maxHp;
+      playerExpEl.textContent  = "E X P : " + player.exp;  // ← EXP追加表示
     }
 
     function setMessage(lines) {
@@ -235,14 +236,14 @@
     }
 
     // ============================
-    // 戦闘ロジック
+    // プレイヤー攻撃
     // ============================
     function playerAttack() {
       if (inputLocked || gameState !== "playerTurn") return;
 
       lockInput();
 
-      const damage = getRandomDamage(player.attackMin, player.attackMax);
+      const damage = Math.floor(Math.random() * (player.attackMax - player.attackMin + 1)) + player.attackMin;
       enemy.hp -= damage;
       if (enemy.hp < 0) enemy.hp = 0;
       updateStatus();
@@ -254,10 +255,14 @@
 
       setTimeout(() => {
         if (enemy.hp <= 0) {
+          // ===== 勝利処理（EXP加算） =====
+          player.exp += enemy.expGain;
+          updateStatus();
+
           gameState = "win";
           setMessage([
             enemy.name + "を たおした！",
-            "けいけんち 5P を かくとく！"
+            enemy.expGain + "ポイントの けいけんち！"
           ]);
           endBattle();
         } else {
@@ -267,10 +272,13 @@
       }, 800);
     }
 
+    // ============================
+    // 敵攻撃
+    // ============================
     function enemyAttack() {
       if (gameState !== "enemyTurn") return;
 
-      const damage = getRandomDamage(enemy.attackMin, enemy.attackMax);
+      const damage = Math.floor(Math.random() * (enemy.attackMax - enemy.attackMin + 1)) + enemy.attackMin;
       player.hp -= damage;
       if (player.hp < 0) player.hp = 0;
       updateStatus();
@@ -296,6 +304,9 @@
       }, 800);
     }
 
+    // ============================
+    // にげる
+    // ============================
     function tryEscape() {
       if (inputLocked || gameState !== "playerTurn") return;
 
@@ -321,7 +332,7 @@
     }
 
     // ============================
-    // イベント設定＆初期化
+    // 初期化
     // ============================
     attackBtn.addEventListener("click", playerAttack);
     runBtn.addEventListener("click", tryEscape);
