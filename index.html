@@ -121,6 +121,7 @@
         <div>【てき】</div>
         <div id="enemy-name"></div>
         <div id="enemy-hp"></div>
+	<div id="enemy-attack"></div>
       </div>
       <div id="player-block">
         <div>【ステータス】</div>
@@ -128,6 +129,7 @@
         <div id="player-lv"></div>
         <div id="player-hp"></div>
         <div id="player-exp"></div>   <!-- ← EXP追加 -->
+	<div id="player-attack"></div>
       </div>
     </div>
 
@@ -184,11 +186,13 @@
     // ============================
     const enemyNameEl = document.getElementById("enemy-name");
     const enemyHpEl   = document.getElementById("enemy-hp");
+    const enemyattackEl = document.getElementById("enemy-attack");
 
     const playerNameEl = document.getElementById("player-name");
     const playerLvEl   = document.getElementById("player-lv");
     const playerHpEl   = document.getElementById("player-hp");
     const playerExpEl  = document.getElementById("player-exp"); // ← EXP DOM
+    const playerattackEl = document.getElementById("player-attack");
 
     const messageTextEl = document.getElementById("message-text");
 
@@ -201,11 +205,13 @@
     function updateStatus() {
       enemyNameEl.textContent = enemy.name;
       enemyHpEl.textContent   = "H P : " + enemy.hp + " / " + enemy.maxHp;
+      enemyattackEl.textContent = "攻撃力：" + enemy.attackMin + " ～ " + enemy.attackMax;
 
       playerNameEl.textContent = player.name;
       playerLvEl.textContent   = "L V : " + player.level;
       playerHpEl.textContent   = "H P : " + player.hp + " / " + player.maxHp;
       playerExpEl.textContent  = "E X P : " + player.exp;  // ← EXP追加表示
+      playerattackEl.textContent = "攻撃力：" + player.attackMin + " ～ " + player.attackMax;
     }
 
     function setMessage(lines) {
