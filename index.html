@@ -1,358 +1,481 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>ドラクエ風バトルデモ（3分割＋EXP）</title>
-  <style>
-    body {
-      background-color: #000;
-      color: #fff;
-      font-family: "MS Gothic", "Yu Gothic UI", monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
+<meta charset="UTF-8">
+<title>BlackStone</title>
+<style>
+body {
+background-color: #000;
+color: #fff;
+font-family: "MS Gothic", "Yu Gothic UI", monospace;
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+margin: 0;
+}
 
-    /* 画面全体：3列レイアウト */
-    #battle-screen {
-      width: 900px;
-      height: 400px;
-      background-color: #000;
-      border: 4px solid #fff;
-      padding: 8px;
-      box-sizing: border-box;
-      display: grid;
-      grid-template-columns: 1fr 1.2fr 1fr; /* 左：ステータス 中央：ログ 右：フィールド */
-      column-gap: 8px;
-    }
+/* 外枠 */
+#battle-screen {
+width: 900px;
+height: 500px;
+background-color: #000;
+border: 4px solid #fff;
+box-sizing: border-box;
+position: relative;
+overflow: hidden;
+}
 
-    .window {
-      border: 2px solid #fff;
-      box-sizing: border-box;
-      padding: 8px;
-      font-size: 14px;
-    }
+/* ---------- タイトル画面 ---------- */
+.title-logo {
+font-family: "UD Digi Kyokasho NP-B", "MS Gothic", sans-serif;
+font-size: 48px;
+text-shadow: 0px 0px 6px rgba(255,255,255,0.6);
+}
 
-    /* 左：ステータス画面 */
-    #status-area {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-    }
+#title-screen {
+width: 100%;
+height: 100%;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+}
 
-    #enemy-block {
-      margin-bottom: 12px;
-      border-bottom: 1px solid #fff;
-      padding-bottom: 8px;
-    }
+.menu-buttons {
+margin-top: 40px;
+display: flex;
+gap: 10px;
+}
 
-    /* 中央：ログビュー＋コマンドビュー */
-    #center-area {
-      display: flex;
-      flex-direction: column;
-    }
+.menu-buttons button {
+font-size: 18px;
+padding: 12px 24px;
+border: 2px solid #fff;
+background-color: #fff;
+color: #000;
+border-radius: 6px;
+cursor: pointer;
+}
 
-    #log-view {
-      flex: 1;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: flex-start;
-    }
+/* ---------- City系画面 ---------- */
+#city-screen {
+width: 100%;
+height: 100%;
+display: none;          /* 初期は非表示 */
+box-sizing: border-box;
+}
 
-    #message-text {
-      white-space: pre-line;
-    }
+#city-screen-inner {
+width: 100%;
+height: 100%;
+display: flex;
+}
 
-    #command-view {
-      height: 90px;
-      display: flex;
-      gap: 8px;
-      align-items: stretch;
-      justify-content: flex-start;
-    }
+/* 左：Status_screen */
+#status-screen {
+width: 30%;
+border-right: 2px solid #fff;
+box-sizing: border-box;
+padding: 4px;
+display: flex;
+flex-direction: column;
+font-size: 13px;
+}
 
-    .command-btn {
-      flex: 0 0 110px;
-      padding: 6px 4px;
-      background-color: #000;
-      color: #fff;
-      border: 2px solid #fff;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 14px;
-    }
+/* 各キャラクター枠 */
+.status-char {
+border-bottom: 1px solid #fff;
+padding: 4px;
+margin-bottom: 6px;
+position: relative;
+}
 
-    .command-btn:disabled {
-      color: #888;
-      border-color: #444;
-      cursor: default;
-    }
+/* Nameボタン（左上） */
+.char-name-btn {
+position: absolute;
+top: 2px;
+left: 4px;
+font-size: 11px;
+padding: 1px 6px;
+border: 1px solid #fff;
+background-color: #222;
+color: #fff;
+border-radius: 4px;
+cursor: pointer;
+}
 
-    /* 右：フィールド画面 */
-    #field-area {
-      position: relative;
-    }
+/* Empty1 (empty) 行 */
+.char-name-line {
+margin-left: 52px;
+margin-bottom: 4px;
+font-weight: bold;
+}
 
-    #field-label {
-      position: absolute;
-      top: 4px;
-      left: 8px;
-      font-size: 12px;
-      opacity: 0.8;
-    }
+/* ステータス行 */
+.char-hp-line,
+.char-mp-line,
+.char-lv-exp-line {
+margin-left: 8px;
+margin-bottom: 3px;
+}
 
-    #field-content {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-  </style>
+.char-lv-exp-line {
+margin-bottom: 4px;
+}
+
+/* Gold / プレイ時間 / 現在位置 */
+.status-meta {
+border-bottom: 1px solid #fff;
+padding: 4px;
+}
+
+#status-location {
+border-bottom: none;
+}
+
+/* ---------- 右カラム：Tips → Picture → Select ---------- */
+#right-pane {
+width: 70%;
+display: flex;
+flex-direction: column;
+box-sizing: border-box;
+}
+
+/* 上：Tips_screen（細い帯） */
+#tips-screen {
+height: 10%;
+border-bottom: 2px solid #fff;
+padding: 4px 10px;
+box-sizing: border-box;
+font-size: 16px;
+display: flex;
+align-items: center;
+}
+
+/* 中：Picture_Screen（広め） */
+#picture-screen {
+height: 60%;
+border-bottom: 2px solid #fff;
+padding: 10px;
+box-sizing: border-box;
+font-size: 16px;
+}
+
+/* 下：Select_Screen（少し狭め） */
+#select-screen {
+height: 30%;
+padding: 10px;
+box-sizing: border-box;
+font-size: 16px;
+display: flex;
+flex-direction: column;
+}
+
+/* ボタン群コンテナ：2×2 で並べる */
+#select-buttons {
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
+}
+
+/* 個々のボタン（2列レイアウト） */
+.select-btn {
+flex: 1 1 calc(50% - 10px);  /* 2列になるよう計算 */
+padding: 10px 8px;
+font-size: 14px;
+border: 2px solid #fff;
+background-color: #111;
+color: #fff;
+border-radius: 6px;
+cursor: pointer;
+text-align: center;
+}
+
+.select-btn:hover {
+background-color: #333;
+}
+</style>
 </head>
 <body>
-  <div id="battle-screen">
-    <!-- 左：ステータス画面 -->
-    <div id="status-area" class="window">
-      <div id="enemy-block">
-        <div>【てき】</div>
-        <div id="enemy-name"></div>
-        <div id="enemy-hp"></div>
-	<div id="enemy-attack"></div>
-      </div>
-      <div id="player-block">
-        <div>【ステータス】</div>
-        <div id="player-name"></div>
-        <div id="player-lv"></div>
-        <div id="player-hp"></div>
-        <div id="player-exp"></div>   <!-- ← EXP追加 -->
-	<div id="player-attack"></div>
-      </div>
-    </div>
+<div id="battle-screen">
 
-    <!-- 中央：ログビュー＋コマンドビュー -->
-    <div id="center-area">
-      <div id="log-view" class="window">
-        <div id="message-text"></div>
-      </div>
+<!-- ▼ タイトル画面 -->
+<div id="title-screen">
+<div class="title-logo">
+BlackStone<br>黒い宝石の物語
+</div>
+<div class="menu-buttons">
+<button id="startBtn">Start</button>
+<button id="loadBtn">Load</button>
+<button id="backBtn">Back</button>
+<button id="manualBtn">Manual</button>
+</div>
+</div>
 
-      <div id="command-view" class="window">
-        <button id="attack-btn" class="command-btn">たたかう</button>
-        <button id="run-btn" class="command-btn">にげる</button>
-      </div>
-    </div>
+<!-- ▼ City 系画面（StartAdv / CityStandby 共通の器） -->
+<div id="city-screen">
+<div id="city-screen-inner">
 
-    <!-- 右：フィールド画面 -->
-    <div id="field-area" class="window">
-      <div id="field-label">フィールド画面</div>
-      <div id="field-content">
-        ★ スライムが あらわれた ★
-      </div>
-    </div>
-  </div>
+<!-- 左：Status_screen -->
+<div id="status-screen">
 
-  <script>
-    // ============================
-    // データ定義（EXP追加）
-    // ============================
-    const player = {
-      name: "やまちゃん",
-      level: 1,
-      exp: 0,        // ← EXP追加
-      hp: 20,
-      maxHp: 20,
-      attackMin: 3,
-      attackMax: 6
-    };
+<!-- キャラクター1 -->
+<div class="status-char" id="Char1_Block">
+<button class="char-name-btn" id="Char1_NameBtn">Name</button>
+<div class="char-name-line">
+<span id="Char1_NickName">Empty1</span>
+(<span id="Char1_CategoryName">empty</span>)
+</div>
+<div class="char-hp-line">
+HP: <span id="Char1_CurrentHP">-</span> /
+<span id="Char1_MaxHP">-</span>
+</div>
+<div class="char-mp-line">
+MP: <span id="Char1_CurrentMP">-</span> /
+<span id="Char1_MaxMP">-</span>
+</div>
+<div class="char-lv-exp-line">
+Lv: <span id="Char1_Level">-</span>
+&nbsp;&nbsp;&nbsp;EXP:
+<span id="Char1_CurrentExp">-</span> /
+<span id="Char1_NextExp">-</span>
+</div>
+</div>
 
-    const enemy = {
-      name: "スライム",
-      hp: 15,
-      maxHp: 15,
-      attackMin: 1,
-      attackMax: 3,
-      expGain: 5      // 倒した時に入る経験値
-    };
+<!-- キャラクター2 -->
+<div class="status-char" id="Char2_Block">
+<button class="char-name-btn" id="Char2_NameBtn">Name</button>
+<div class="char-name-line">
+<span id="Char2_NickName">Empty2</span>
+(<span id="Char2_CategoryName">empty</span>)
+</div>
+<div class="char-hp-line">
+HP: <span id="Char2_CurrentHP">-</span> /
+<span id="Char2_MaxHP">-</span>
+</div>
+<div class="char-mp-line">
+MP: <span id="Char2_CurrentMP">-</span> /
+<span id="Char2_MaxMP">-</span>
+</div>
+<div class="char-lv-exp-line">
+Lv: <span id="Char2_Level">-</span>
+&nbsp;&nbsp;&nbsp;EXP:
+<span id="Char2_CurrentExp">-</span> /
+<span id="Char2_NextExp">-</span>
+</div>
+</div>
 
-    // "playerTurn" | "enemyTurn" | "win" | "lose" | "escape"
-    let gameState = "playerTurn";
-    let inputLocked = false;
+<!-- キャラクター3 -->
+<div class="status-char" id="Char3_Block">
+<button class="char-name-btn" id="Char3_NameBtn">Name</button>
+<div class="char-name-line">
+<span id="Char3_NickName">Empty3</span>
+(<span id="Char3_CategoryName">empty</span>)
+</div>
+<div class="char-hp-line">
+HP: <span id="Char3_CurrentHP">-</span> /
+<span id="Char3_MaxHP">-</span>
+</div>
+<div class="char-mp-line">
+MP: <span id="Char3_CurrentMP">-</span> /
+<span id="Char3_MaxMP">-</span>
+</div>
+<div class="char-lv-exp-line">
+Lv: <span id="Char3_Level">-</span>
+&nbsp;&nbsp;&nbsp;EXP:
+<span id="Char3_CurrentExp">-</span> /
+<span id="Char3_NextExp">-</span>
+</div>
+</div>
 
-    // ============================
-    // DOM取得
-    // ============================
-    const enemyNameEl = document.getElementById("enemy-name");
-    const enemyHpEl   = document.getElementById("enemy-hp");
-    const enemyattackEl = document.getElementById("enemy-attack");
+<!-- キャラクター4 -->
+<div class="status-char" id="Char4_Block">
+<button class="char-name-btn" id="Char4_NameBtn">Name</button>
+<div class="char-name-line">
+<span id="Char4_NickName">Empty4</span>
+(<span id="Char4_CategoryName">empty</span>)
+</div>
+<div class="char-hp-line">
+HP: <span id="Char4_CurrentHP">-</span> /
+<span id="Char4_MaxHP">-</span>
+</div>
+<div class="char-mp-line">
+MP: <span id="Char4_CurrentMP">-</span> /
+<span id="Char4_MaxMP">-</span>
+</div>
+<div class="char-lv-exp-line">
+Lv: <span id="Char4_Level">-</span>
+&nbsp;&nbsp;&nbsp;EXP:
+<span id="Char4_CurrentExp">-</span> /
+<span id="Char4_NextExp">-</span>
+</div>
+</div>
 
-    const playerNameEl = document.getElementById("player-name");
-    const playerLvEl   = document.getElementById("player-lv");
-    const playerHpEl   = document.getElementById("player-hp");
-    const playerExpEl  = document.getElementById("player-exp"); // ← EXP DOM
-    const playerattackEl = document.getElementById("player-attack");
+<!-- キャラクター5 -->
+<div class="status-char" id="Char5_Block">
+<button class="char-name-btn" id="Char5_NameBtn">Name</button>
+<div class="char-name-line">
+<span id="Char5_NickName">Empty5</span>
+(<span id="Char5_CategoryName">empty</span>)
+</div>
+<div class="char-hp-line">
+HP: <span id="Char5_CurrentHP">-</span> /
+<span id="Char5_MaxHP">-</span>
+</div>
+<div class="char-mp-line">
+MP: <span id="Char5_CurrentMP">-</span> /
+<span id="Char5_MaxMP">-</span>
+</div>
+<div class="char-lv-exp-line">
+Lv: <span id="Char5_Level">-</span>
+&nbsp;&nbsp;&nbsp;EXP:
+<span id="Char5_CurrentExp">-</span> /
+<span id="Char5_NextExp">-</span>
+</div>
+</div>
 
-    const messageTextEl = document.getElementById("message-text");
+<!-- Gold / プレイ時間 / 現在位置 -->
+<div class="status-meta" id="status-gold">
+Gold: <span id="GoldAmount">0</span>
+</div>
+<div class="status-meta" id="status-playtime">
+プレイ時間: <span id="PlayTimeText">00:00:00</span>
+</div>
+<div class="status-meta" id="status-location">
+現在位置: <span id="NowLocationText">街</span>
+</div>
 
-    const attackBtn = document.getElementById("attack-btn");
-    const runBtn    = document.getElementById("run-btn");
+</div>
 
-    // ============================
-    // ステータス更新（EXP対応）
-    // ============================
-    function updateStatus() {
-      enemyNameEl.textContent = enemy.name;
-      enemyHpEl.textContent   = "H P : " + enemy.hp + " / " + enemy.maxHp;
-      enemyattackEl.textContent = "攻撃力：" + enemy.attackMin + " ～ " + enemy.attackMax;
+<!-- 右：Tips → Picture → Select -->
+<div id="right-pane">
+<div id="tips-screen">
+Tips: <span id="TipsStringText"></span>
+</div>
+<div id="picture-screen">
+Picture_Screen（画像や街のイラスト表示）
+</div>
+<div id="select-screen">
+<div id="select-buttons">
+<button class="select-btn" id="btn-inventory">所持品確認</button>
+<button class="select-btn" id="btn-guild">冒険者協会</button>
+<button class="select-btn" id="btn-shop">Shop</button>
+<button class="select-btn" id="btn-field">町の外へ出る</button>
+</div>
+</div>
+</div>
 
-      playerNameEl.textContent = player.name;
-      playerLvEl.textContent   = "L V : " + player.level;
-      playerHpEl.textContent   = "H P : " + player.hp + " / " + player.maxHp;
-      playerExpEl.textContent  = "E X P : " + player.exp;  // ← EXP追加表示
-      playerattackEl.textContent = "攻撃力：" + player.attackMin + " ～ " + player.attackMax;
-    }
+</div>
+</div>
 
-    function setMessage(lines) {
-      if (Array.isArray(lines)) {
-        messageTextEl.textContent = lines.join("\n");
-      } else {
-        messageTextEl.textContent = lines;
-      }
-    }
+</div>
 
-    function lockInput() {
-      inputLocked = true;
-      attackBtn.disabled = true;
-      runBtn.disabled    = true;
-    }
+<script>
+// GameTitle / StartAdv / CityStandby
+let gameState   = "GameTitle";
+let NowLocation = "街";
+let TipsString  = "";
 
-    function unlockInput() {
-      if (gameState === "playerTurn") {
-        inputLocked = false;
-        attackBtn.disabled = false;
-        runBtn.disabled    = false;
-      }
-    }
+const titleScreen      = document.getElementById("title-screen");
+const cityScreen       = document.getElementById("city-screen");
+const nowLocationSpan  = document.getElementById("NowLocationText");
+const tipsStringSpan   = document.getElementById("TipsStringText");
 
-    function endBattle() {
-      attackBtn.disabled = true;
-      runBtn.disabled    = true;
-    }
+const btnInventory = document.getElementById("btn-inventory");
+const btnGuild     = document.getElementById("btn-guild");
+const btnShop      = document.getElementById("btn-shop");
+const btnField     = document.getElementById("btn-field");
 
-    // ============================
-    // プレイヤー攻撃
-    // ============================
-    function playerAttack() {
-      if (inputLocked || gameState !== "playerTurn") return;
+function updateScreen() {
+if (gameState === "GameTitle") {
+titleScreen.style.display = "flex";
+cityScreen.style.display  = "none";
 
-      lockInput();
+TipsString  = "";
+NowLocation = "街";   // タイトル時点では便宜上「街」
 
-      const damage = Math.floor(Math.random() * (player.attackMax - player.attackMin + 1)) + player.attackMin;
-      enemy.hp -= damage;
-      if (enemy.hp < 0) enemy.hp = 0;
-      updateStatus();
+// ボタン表示リセット（念のため）
+btnInventory.style.display = "";
+btnGuild.style.display     = "";
+btnShop.style.display      = "";
+btnField.style.display     = "";
 
-      setMessage([
-        player.name + "の こうげき！",
-        enemy.name + "に " + damage + " の ダメージ！"
-      ]);
+} else if (gameState === "StartAdv") {
+titleScreen.style.display = "none";
+cityScreen.style.display  = "block";
 
-      setTimeout(() => {
-        if (enemy.hp <= 0) {
-          // ===== 勝利処理（EXP加算） =====
-          player.exp += enemy.expGain;
-          updateStatus();
+NowLocation = "街";
+TipsString  = "まずはシティホールで冒険者登録をしましょう";
 
-          gameState = "win";
-          setMessage([
-            enemy.name + "を たおした！",
-            enemy.expGain + "ポイントの けいけんち！"
-          ]);
-          endBattle();
-        } else {
-          gameState = "enemyTurn";
-          enemyAttack();
-        }
-      }, 800);
-    }
+// 冒険前準備：ギルド（シティホール）のみ表示
+btnInventory.style.display = "none";
+btnShop.style.display      = "none";
+btnField.style.display     = "none";
+btnGuild.style.display     = "";   // 表示（CSS に任せる）
 
-    // ============================
-    // 敵攻撃
-    // ============================
-    function enemyAttack() {
-      if (gameState !== "enemyTurn") return;
+} else if (gameState === "CityStandby") {
+titleScreen.style.display = "none";
+cityScreen.style.display  = "block";
 
-      const damage = Math.floor(Math.random() * (enemy.attackMax - enemy.attackMin + 1)) + enemy.attackMin;
-      player.hp -= damage;
-      if (player.hp < 0) player.hp = 0;
-      updateStatus();
+NowLocation = "街";
+TipsString  = "行き先を選んでください";
 
-      setMessage([
-        enemy.name + "の こうげき！",
-        player.name + "は " + damage + " の ダメージを うけた！"
-      ]);
+// 4ボタンすべて表示
+btnInventory.style.display = "";
+btnShop.style.display      = "";
+btnField.style.display     = "";
+btnGuild.style.display     = "";
+}
 
-      setTimeout(() => {
-        if (player.hp <= 0) {
-          gameState = "lose";
-          setMessage([
-            player.name + "は しんでしまった…",
-            "めのまえが まっくらに なった。"
-          ]);
-          endBattle();
-        } else {
-          gameState = "playerTurn";
-          unlockInput();
-          setMessage("コマンド？");
-        }
-      }, 800);
-    }
+nowLocationSpan.textContent = NowLocation;
+tipsStringSpan.textContent  = TipsString;
+}
 
-    // ============================
-    // にげる
-    // ============================
-    function tryEscape() {
-      if (inputLocked || gameState !== "playerTurn") return;
+// ▼ タイトル Start → StartAdv へ
+document.getElementById("startBtn").addEventListener("click", () => {
+gameState = "StartAdv";
+updateScreen();
+});
 
-      lockInput();
+// ▼ SelectScreen 仮動作
+btnInventory.addEventListener("click", () => {
+alert("所持品確認（仮）");
+});
 
-      const escaped = Math.random() < 0.5;
+btnShop.addEventListener("click", () => {
+alert("Shop（仮）");
+});
 
-      if (escaped) {
-        gameState = "escape";
-        setMessage("うまく にげきれた！");
-        endBattle();
-      } else {
-        setMessage([
-          "しかし まわりこまれてしまった！",
-          enemy.name + "の こうげき！"
-        ]);
+btnField.addEventListener("click", () => {
+alert("町の外へ出る（仮）");
+});
 
-        setTimeout(() => {
-          gameState = "enemyTurn";
-          enemyAttack();
-        }, 800);
-      }
-    }
+// 冒険者協会ボタン：
+// StartAdv のときは「キャラ登録完了 → CityStandbyへ進む」デモ挙動にしておく
+btnGuild.addEventListener("click", () => {
+if (gameState === "StartAdv") {
+alert("シティホールで冒険者登録が完了したとみなして CityStandby へ進みます（仮実装）");
+gameState = "CityStandby";
+updateScreen();
+} else {
+alert("冒険者協会（仮）");
+}
+});
 
-    // ============================
-    // 初期化
-    // ============================
-    attackBtn.addEventListener("click", playerAttack);
-    runBtn.addEventListener("click", tryEscape);
+// タイトル画面メニュー（ダミー）
+document.getElementById("loadBtn").addEventListener("click", () => {
+alert("Load 機能はこれから実装予定です。");
+});
+document.getElementById("backBtn").addEventListener("click", () => {
+history.back();
+});
+document.getElementById("manualBtn").addEventListener("click", () => {
+alert("Manual 機能はこれから実装予定です。");
+});
 
-    function initBattle() {
-      updateStatus();
-      setMessage(enemy.name + "が あらわれた！");
-      gameState = "playerTurn";
-      inputLocked = false;
-      attackBtn.disabled = false;
-      runBtn.disabled    = false;
-    }
+updateScreen();
+</script>
 
-    initBattle();
-  </script>
 </body>
 </html>
